@@ -36,8 +36,8 @@ func init() {
 	flag.BoolVar(&debug, "debug", false, "debug mode")
 }
 
-func newApp(c *conf.Ord, data *data.Data, collectionUc *biz.CollectionUsecase, tokenUc *biz.TokenUsecase, logger log.Logger) (*ord.Syncer, func(), error) {
-	return ord.NewSyncer(c, data, collectionUc, tokenUc, logger)
+func newApp(c *conf.Ord, data *data.Data, inscriptionUsecase *biz.InscriptionUsecase, collectionUc *biz.CollectionUsecase, tokenUc *biz.TokenUsecase, logger log.Logger) (*ord.Syncer, func(), error) {
+	return ord.NewSyncer(c, data, inscriptionUsecase, collectionUc, tokenUc, logger)
 }
 
 func main() {

@@ -31,7 +31,7 @@ func (r *inscriptionRepo) Create(ctx context.Context, g *biz.Inscription) (*biz.
 		SetInscriptionID(g.InscriptionID).
 		SetUID(g.UID).
 		SetAddress(g.Address).
-		SetOutput(g.Output).
+		SetOutputValue(g.OutputValue).
 		SetContentLength(g.ContentLength).
 		SetContentType(g.ContentType).
 		SetTimestamp(g.Timestamp).

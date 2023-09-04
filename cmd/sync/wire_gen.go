@@ -12,9 +12,7 @@ import (
 	"github.com/adshao/ordinals-indexer/internal/data"
 	"github.com/adshao/ordinals-indexer/internal/ord"
 	"github.com/go-kratos/kratos/v2/log"
-)
 
-import (
 	_ "go.uber.org/automaxprocs"
 )
 
@@ -26,11 +24,14 @@ func wireApp(confOrd *conf.Ord, confData *conf.Data, logger log.Logger) (*ord.Sy
 	if err != nil {
 		return nil, nil, err
 	}
+	inscriptionRepo := data.NewInscriptionRepo(dataData, logger) 
+	inscriptionUsecase := biz.NewInscriptionUsecase(inscriptionRepo, logger)
+
 	collectionRepo := data.NewCollectionRepo(dataData, logger)
 	collectionUsecase := biz.NewCollectionUsecase(collectionRepo, logger)
 	tokenRepo := data.NewTokenRepo(dataData, logger)
 	tokenUsecase := biz.NewTokenUsecase(tokenRepo, logger)
-	syncer, cleanup2, err := newApp(confOrd, dataData, collectionUsecase, tokenUsecase, logger)
+	syncer, cleanup2, err := newApp(confOrd, dataData, inscriptionUsecase, collectionUsecase, tokenUsecase, logger)
 	if err != nil {
 		cleanup()
 		return nil, nil, err

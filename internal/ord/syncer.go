@@ -37,6 +37,7 @@ type uids []string
 type Syncer struct {
 	c                     *conf.Ord
 	data                  *data.Data
+	inscriptionUc         *biz.InscriptionUsecase
 	collectionUc          *biz.CollectionUsecase
 	tokenUc               *biz.TokenUsecase
 	pageParser            page.PageParser
@@ -50,17 +51,18 @@ type Syncer struct {
 	lastInscriptionIdChan chan int64
 }
 
-func NewSyncer(c *conf.Ord, data *data.Data, collectionUc *biz.CollectionUsecase, tokenUc *biz.TokenUsecase, logger log.Logger) (*Syncer, func(), error) {
+func NewSyncer(c *conf.Ord, data *data.Data, inscriptionUc *biz.InscriptionUsecase, collectionUc *biz.CollectionUsecase, tokenUc *biz.TokenUsecase, logger log.Logger) (*Syncer, func(), error) {
 	cleanup := func() {
 		log.NewHelper(logger).Info("closing the syncer resources")
 	}
 	syncer := &Syncer{
-		c:            c,
-		data:         data,
-		collectionUc: collectionUc,
-		tokenUc:      tokenUc,
-		pageParser:   page.NewPageParser(c),
-		logger:       log.NewHelper(logger),
+		c:             c,
+		data:          data,
+		inscriptionUc: inscriptionUc,
+		collectionUc:  collectionUc,
+		tokenUc:       tokenUc,
+		pageParser:    page.NewPageParser(c),
+		logger:        log.NewHelper(logger),
 	}
 	concurrency := c.Worker.Concurrency
 	syncer.inscriptionUidChan = make(chan string, concurrency)
@@ -212,6 +214,52 @@ func (s *Syncer) processResults(resultsInOrder []*result, lastInscriptionId int6
 			return count, err
 		}
 		s.logger.Infof("processed inscription %d", result.info.ID)
+
+		inscription := &biz.Inscription{
+			InscriptionID: result.info.ID,
+			UID:           result.info.UID,
+		}
+
+		if result.info.Address != "" {
+			inscription.Address = result.info.Address
+		}
+		if result.info.OutputValue != 0 {
+			inscription.OutputValue = result.info.OutputValue
+		}
+		if result.info.ContentLength != 0 {
+			inscription.ContentLength = result.info.ContentLength
+		}
+		if result.info.ContentType != "" {
+			inscription.ContentType = result.info.ContentType
+		}
+		if !result.info.Timestamp.IsZero() {
+			inscription.Timestamp = result.info.Timestamp
+		}
+		if result.info.GenesisHeight != 0 {
+			inscription.GenesisHeight = result.info.GenesisHeight
+		}
+		if result.info.GenesisFee != 0 {
+			inscription.GenesisFee = result.info.GenesisFee
+		}
+		if result.info.GenesisTx != "" {
+			inscription.GenesisTx = result.info.GenesisTx
+		}
+		if result.info.Location != "" {
+			inscription.Location = result.info.Location
+		}
+		if result.info.Output != "" {
+			inscription.Output = result.info.Output
+		}
+		if result.info.Offset != 0 {
+			inscription.Offset = result.info.Offset
+		}
+
+		// inscriptionJSON, _ := json.MarshalIndent(inscription, "", "  ")
+		// fmt.Println("this is the inscription to: ", string(inscriptionJSON))
+		_, err = s.inscriptionUc.CreateInscription(context.Background(), inscription)
+		if err != nil {
+			s.logger.Infof("saving error %s", err)
+		}
 		lastSuccessInscriptionId = result.info.ID
 		count++
 	}

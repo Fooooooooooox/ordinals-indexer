@@ -2,6 +2,7 @@ package biz
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/go-kratos/kratos/v2/log"
@@ -54,6 +55,7 @@ func NewInscriptionUsecase(repo InscriptionRepo, logger log.Logger) *Inscription
 
 // CreateInscription creates a Inscription, and returns the new Inscription.
 func (uc *InscriptionUsecase) CreateInscription(ctx context.Context, g *Inscription) (*Inscription, error) {
+	fmt.Println("CreateInscription for inscription:", g.InscriptionID)
 	uc.log.WithContext(ctx).Debugf("CreateInscription for inscription %d", g.InscriptionID)
 	return uc.repo.Create(ctx, g)
 }
